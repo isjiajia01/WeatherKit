@@ -218,6 +218,42 @@ test("encode without a source creates a complete root containing only patch keys
     assert.equal(weather.forecastNextHour(), null);
     assert.deepEqual(Object.keys(WeatherKit2.decode(new ByteBuffer(rawBody), ["news", "forecastNextHour"])), ["news"]);
 });
+test("response preserves the original air-quality provider logo in production and development", async () => {
+    const originalArgument = globalThis.$argument;
+    globalThis.$argument = {
+        DataSets: "airQuality",
+        LogLevel: "OFF",
+        Storage: "Argument",
+        Weather: { Provider: "Nordic", Replace: [] },
+        AirQuality: { Current: { Pollutants: { Provider: "ColorfulClouds", Units: { Replace: [], Mode: "Scale" } }, Index: { Replace: [], Provider: "Calculate" } }, Comparison: { ReplaceWhenCurrentChange: false } },
+    };
+    const airQuality = {
+        metadata: {
+            providerName: "BreezoMeter",
+            providerLogo: "https://weatherkit.apple.com/assets/v2/BreezoMeter.png",
+            temporarilyUnavailable: false,
+        },
+        pollutants: [{ pollutantType: "PM2_5", amount: 12, units: "MICROGRAMS_PER_CUBIC_METER" }],
+        previousDayComparison: "SAME",
+        scale: "EPA_NowCast",
+    };
+    try {
+        const sourceBytes = WeatherKit2.encode(undefined, { airQuality });
+        for (const handler of [Response, ResponseDev]) {
+            const response = await runResponseHandler(handler, {
+                url: "https://weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683?country=DK&dataSets=airQuality",
+            }, {
+                bodyBytes: sourceBytes,
+                headers: { "Content-Type": "application/vnd.apple.flatbuffer" },
+            });
+            const decoded = WeatherKit2.decode(new ByteBuffer(new Uint8Array(response.body)), ["airQuality"]);
+            assert.equal(decoded.airQuality.metadata.providerName, "BreezoMeter");
+            assert.equal(decoded.airQuality.metadata.providerLogo, airQuality.metadata.providerLogo);
+        }
+    } finally {
+        globalThis.$argument = originalArgument;
+    }
+});
 
 test("response only processes roots included in the requested dataSets", async () => {
     const originalArgument = globalThis.$argument;

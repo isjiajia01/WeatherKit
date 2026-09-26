@@ -202,7 +202,7 @@ test("NordicWeather applies DMI observation enhancement in Denmark and preserves
     const osloCurrent = await oslo.CurrentWeather();
     assert.equal(osloCurrent.metadata.providerName, "MET Norway");
 
-    // DMI failure tolerance: If DMI throws, MET Norway still succeeds
+    // DMI failure tolerance: If DMI throws, MET Norway still succeeds.
     const resilient = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
     resilient.met.fetchLocationforecast = async () => locationforecastFixture;
     resilient.dmi.getObservationEnhancement = async () => {
@@ -212,6 +212,19 @@ test("NordicWeather applies DMI observation enhancement in Denmark and preserves
     const resilientCurrent = await resilient.CurrentWeather();
     assert.ok(resilientCurrent, "Current weather must still succeed when DMI fails");
     assert.equal(resilientCurrent.metadata.providerName, "MET Norway");
+
+    // A station result without usable atmospheric fields must not claim DMI attribution.
+    const noOp = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
+    noOp.met.fetchLocationforecast = async () => locationforecastFixture;
+    noOp.dmi.getObservationEnhancement = async () => ({ stationId: "no-op", observedAt: 1, providerName: "Danish Meteorological Institute" });
+    assert.equal((await noOp.CurrentWeather()).metadata.providerName, "MET Norway");
+
+    const forecast = await cph.ForecastHourly(2);
+    const daily = await cph.Daily(2);
+    const minutely = await cph.Minutely();
+    assert.equal(forecast.metadata.providerName, "MET Norway");
+    assert.equal(daily.metadata.providerName, "MET Norway");
+    assert.equal(minutely.metadata.providerName, "MET Norway");
 });
 
 test("NordicWeather full product suite round-trips through Apple WeatherKit FlatBuffers codec", async () => {
@@ -242,12 +255,16 @@ test("NordicWeather full product suite round-trips through Apple WeatherKit Flat
     assert.ok(typeof decoded.currentWeather.temperature === "number");
 
     assert.ok(decoded.forecastHourly);
+    assert.equal(decoded.forecastHourly.metadata.providerName, "MET Norway");
+    assert.equal(decoded.forecastHourly.metadata.providerLogo, providerNameToLogo("MET Norway"));
     assert.equal(decoded.forecastHourly.hours.length, 24);
 
     assert.ok(decoded.forecastDaily);
-    assert.equal(decoded.forecastNextHour.minutes.length, 60);
-
-    assert.ok(decoded.forecastNextHour);
+    assert.equal(decoded.forecastDaily.metadata.providerName, "MET Norway");
+    assert.equal(decoded.forecastDaily.metadata.providerLogo, providerNameToLogo("MET Norway"));
+    assert.equal(decoded.forecastNextHour.metadata.providerName, "MET Norway");
+    assert.equal(decoded.forecastNextHour.metadata.providerLogo, providerNameToLogo("MET Norway"));
+    assert.equal(decoded.forecastDaily.days.length > 0, true);
     assert.ok(decoded.forecastNextHour.minutes.length >= 60);
 });
 

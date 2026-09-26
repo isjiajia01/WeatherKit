@@ -41,40 +41,32 @@ export default class NordicWeather {
 
         const dmiEnhancement = dmiResult.status === "fulfilled" ? dmiResult.value : null;
 
-        // Apply DMI observation enhancement if available
+        // Apply DMI observation enhancement if available.
         if (dmiEnhancement) {
             Console.info("NordicWeather.CurrentWeather", `Applying DMI observation enhancement from station ${dmiEnhancement.stationId} (${dmiEnhancement.distanceKm} km)`);
-
-            if (dmiEnhancement.temperature != null) {
-                currentWeather.temperature = dmiEnhancement.temperature;
+            const dmiFields = [
+                ["temperature", "temperature"],
+                ["temperatureDewPoint", "temperatureDewPoint"],
+                ["humidity", "humidity"],
+                ["pressure", "pressure"],
+                ["windSpeed", "windSpeed"],
+                ["windDirection", "windDirection"],
+                ["windGust", "windGust"],
+                ["visibility", "visibility"],
+            ];
+            let appliedDmiField = false;
+            for (const [sourceKey, targetKey] of dmiFields) {
+                if (dmiEnhancement[sourceKey] != null) {
+                    currentWeather[targetKey] = dmiEnhancement[sourceKey];
+                    appliedDmiField = true;
+                }
             }
-            if (dmiEnhancement.temperatureDewPoint != null) {
-                currentWeather.temperatureDewPoint = dmiEnhancement.temperatureDewPoint;
+            if (appliedDmiField) {
+                currentWeather.metadata.providerName = "MET Norway · DMI";
+                currentWeather.metadata.attributionUrl = "https://www.met.no/";
+                currentWeather.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
+                currentWeather.asOf = dmiEnhancement.observedAt || currentWeather.asOf;
             }
-            if (dmiEnhancement.humidity != null) {
-                currentWeather.humidity = dmiEnhancement.humidity;
-            }
-            if (dmiEnhancement.pressure != null) {
-                currentWeather.pressure = dmiEnhancement.pressure;
-            }
-            if (dmiEnhancement.windSpeed != null) {
-                currentWeather.windSpeed = dmiEnhancement.windSpeed;
-            }
-            if (dmiEnhancement.windDirection != null) {
-                currentWeather.windDirection = dmiEnhancement.windDirection;
-            }
-            if (dmiEnhancement.windGust != null) {
-                currentWeather.windGust = dmiEnhancement.windGust;
-            }
-            if (dmiEnhancement.visibility != null) {
-                currentWeather.visibility = dmiEnhancement.visibility;
-            }
-
-            // Update metadata to reflect both MET Norway and DMI
-            currentWeather.metadata.providerName = "MET Norway · DMI";
-            currentWeather.metadata.attributionUrl = "https://www.met.no/";
-            currentWeather.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
-            currentWeather.asOf = dmiEnhancement.observedAt || currentWeather.asOf;
         }
 
         Console.info("✅ NordicWeather.CurrentWeather");
@@ -89,31 +81,16 @@ export default class NordicWeather {
      */
     async ForecastHourly(hourlysteps = 72, begin = undefined) {
         Console.info("☑️ NordicWeather.ForecastHourly");
-        const hourly = await this.met.ForecastHourly(hourlysteps, begin);
-        if (hourly?.metadata && this.dmi.isDenmark()) {
-            hourly.metadata.providerName = "MET Norway · DMI";
-            hourly.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
-        }
-        return hourly;
+        return await this.met.ForecastHourly(hourlysteps, begin);
     }
 
     async Daily(dailysteps = 10, begin = undefined) {
         Console.info("☑️ NordicWeather.Daily");
-        const daily = await this.met.Daily(dailysteps, begin);
-        if (daily?.metadata && this.dmi.isDenmark()) {
-            daily.metadata.providerName = "MET Norway · DMI";
-            daily.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
-        }
-        return daily;
+        return await this.met.Daily(dailysteps, begin);
     }
 
     async Minutely() {
         Console.info("☑️ NordicWeather.Minutely");
-        const nextHour = await this.met.Minutely();
-        if (nextHour?.metadata && this.dmi.isDenmark()) {
-            nextHour.metadata.providerName = "MET Norway · DMI";
-            nextHour.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
-        }
-        return nextHour;
+        return await this.met.Minutely();
     }
 }
