@@ -267,7 +267,8 @@ async function InjectForecastDaily(forecastDaily, Settings, enviroments) {
     if (newForecastDaily?.metadata) {
         forecastDaily.metadata = { ...forecastDaily?.metadata, ...newForecastDaily.metadata };
         Weather.mergeForecast(forecastDaily?.days, newForecastDaily?.days);
-        forecastDaily.metadata.providerLogo ||= providerNameToLogo(forecastDaily.metadata.providerName);
+        if (["Nordic", "METNorway"].includes(Settings?.Weather?.Provider)) delete forecastDaily.metadata.providerLogo;
+        else forecastDaily.metadata.providerLogo ||= providerNameToLogo(forecastDaily.metadata.providerName);
     }
     Console.info("✅ InjectForecastDaily");
     return forecastDaily;
@@ -320,7 +321,8 @@ async function InjectForecastHourly(forecastHourly, Settings, enviroments) {
     if (newForecastHourly?.metadata) {
         forecastHourly.metadata = { ...forecastHourly?.metadata, ...newForecastHourly.metadata };
         forecastHourly.hours = Weather.mergeForecast(forecastHourly?.hours, newForecastHourly?.hours);
-        forecastHourly.metadata.providerLogo ||= providerNameToLogo(forecastHourly.metadata.providerName);
+        if (["Nordic", "METNorway"].includes(Settings?.Weather?.Provider)) delete forecastHourly.metadata.providerLogo;
+        else forecastHourly.metadata.providerLogo ||= providerNameToLogo(forecastHourly.metadata.providerName);
     }
     Console.info("✅ InjectForecastHourly");
     return forecastHourly;
@@ -367,7 +369,8 @@ async function InjectForecastNextHour(forecastNextHour, Settings, enviroments) {
     if (newForecastNextHour?.metadata) {
         newForecastNextHour.metadata = { ...forecastNextHour?.metadata, ...newForecastNextHour.metadata };
         forecastNextHour = { ...forecastNextHour, ...newForecastNextHour };
-        forecastNextHour.metadata.providerLogo ||= providerNameToLogo(forecastNextHour.metadata.providerName);
+        if (["Nordic", "METNorway"].includes(nextHourProvider)) delete forecastNextHour.metadata.providerLogo;
+        else forecastNextHour.metadata.providerLogo ||= providerNameToLogo(forecastNextHour.metadata.providerName);
     }
     Console.info("✅ InjectForecastNextHour");
     return forecastNextHour;

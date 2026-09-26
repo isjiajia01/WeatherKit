@@ -186,7 +186,7 @@ test("METNorway Nowcast fixture parses into valid Apple WeatherKit ForecastNextH
     }
 });
 
-test("NordicWeather shares DMI enhancement across concurrent products with truthful attribution", async () => {
+test("NordicWeather shares DMI enhancement for current weather only", async () => {
     const cph = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" }, { maxAgeMs: Number.POSITIVE_INFINITY });
     cph.met.fetchLocationforecast = async () => locationforecastFixture;
     cph.met.fetchNowcast = async () => nowcastFixture;
@@ -199,50 +199,38 @@ test("NordicWeather shares DMI enhancement across concurrent products with truth
     };
 
     const [current, hourly, daily, minutely] = await Promise.all([cph.CurrentWeather(), cph.ForecastHourly(2), cph.Daily(2), cph.Minutely()]);
-    const compositeLogo = providerNameToLogo("MET Norway · DMI");
-    assert.equal(dmiCalls, 1, "Concurrent weather products must share one DMI request");
+    assert.equal(dmiCalls, 1, "Only current weather should query DMI");
     assert.equal(current.metadata.providerName, "MET Norway · DMI");
-    assert.equal(current.metadata.providerLogo, compositeLogo);
-    assert.equal(hourly.metadata.providerName, "MET Norway");
-    assert.equal(daily.metadata.providerName, "MET Norway");
-    assert.equal(minutely.metadata.providerName, "MET Norway");
-    assert.equal(hourly.metadata.providerLogo, compositeLogo);
-    assert.equal(daily.metadata.providerLogo, compositeLogo);
-    assert.equal(minutely.metadata.providerLogo, compositeLogo);
+    assert.equal(current.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
+    for (const forecast of [hourly, daily, minutely]) {
+        assert.equal(forecast.metadata.providerName, "MET Norway");
+        assert.equal(forecast.metadata.attributionUrl, "https://www.met.no/");
+        assert.equal("providerLogo" in forecast.metadata, false);
+    }
 
-    // Non-Denmark locations must not query DMI or use the composite logo.
     const oslo = new NordicWeather({ latitude: 59.9139, longitude: 10.7522, country: "NO" });
     oslo.met.fetchLocationforecast = async () => locationforecastFixture;
-    oslo.dmi.getObservationEnhancement = async () => {
-        throw new Error("DMI must not be queried outside Denmark");
-    };
-    const osloCurrent = await oslo.CurrentWeather();
+    oslo.dmi.getObservationEnhancement = async () => { throw new Error("DMI must not be queried outside Denmark"); };
+    const [osloCurrent, osloHourly] = await Promise.all([oslo.CurrentWeather(), oslo.ForecastHourly(2)]);
     assert.equal(osloCurrent.metadata.providerName, "MET Norway");
     assert.equal(osloCurrent.metadata.providerLogo, providerNameToLogo("MET Norway"));
+    assert.equal(osloHourly.metadata.providerName, "MET Norway");
+    assert.equal("providerLogo" in osloHourly.metadata, false);
 
-    // DMI failure tolerance: MET Norway still succeeds with MET attribution.
     const resilient = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
     resilient.met.fetchLocationforecast = async () => locationforecastFixture;
-    resilient.dmi.getObservationEnhancement = async () => {
-        throw new Error("Simulated DMI upstream outage");
-    };
+    resilient.dmi.getObservationEnhancement = async () => { throw new Error("Simulated DMI upstream outage"); };
     const resilientCurrent = await resilient.CurrentWeather();
     assert.ok(resilientCurrent);
     assert.equal(resilientCurrent.metadata.providerName, "MET Norway");
     assert.equal(resilientCurrent.metadata.providerLogo, providerNameToLogo("MET Norway"));
 
-    // A no-op observation must preserve MET attribution on every product.
     const noOp = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
     noOp.met.fetchLocationforecast = async () => locationforecastFixture;
-    noOp.met.fetchNowcast = async () => nowcastFixture;
     noOp.dmi.getObservationEnhancement = async () => ({ stationId: "no-op", observedAt: 1, providerName: "Danish Meteorological Institute" });
-    const [noOpCurrent, noOpHourly, noOpDaily, noOpMinutely] = await Promise.all([noOp.CurrentWeather(), noOp.ForecastHourly(2), noOp.Daily(2), noOp.Minutely()]);
-    const metLogo = providerNameToLogo("MET Norway");
+    const noOpCurrent = await noOp.CurrentWeather();
     assert.equal(noOpCurrent.metadata.providerName, "MET Norway");
-    assert.equal(noOpCurrent.metadata.providerLogo, metLogo);
-    assert.equal(noOpHourly.metadata.providerLogo, metLogo);
-    assert.equal(noOpDaily.metadata.providerLogo, metLogo);
-    assert.equal(noOpMinutely.metadata.providerLogo, metLogo);
+    assert.equal(noOpCurrent.metadata.providerLogo, providerNameToLogo("MET Norway"));
 });
 
 test("NordicWeather full product suite round-trips through Apple WeatherKit FlatBuffers codec", async () => {
@@ -268,22 +256,38 @@ test("NordicWeather full product suite round-trips through Apple WeatherKit Flat
     const bb = new ByteBuffer(rawBinary);
     const decoded = WeatherKit2.decode(bb, ["currentWeather", "forecastHourly", "forecastDaily", "forecastNextHour"]);
 
-    assert.ok(decoded.currentWeather);
     assert.equal(decoded.currentWeather.metadata.providerName, "MET Norway · DMI");
+    assert.equal(decoded.currentWeather.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
     assert.ok(typeof decoded.currentWeather.temperature === "number");
+    assert.ok(decoded.currentWeather);
 
     assert.ok(decoded.forecastHourly);
     assert.equal(decoded.forecastHourly.metadata.providerName, "MET Norway");
-    assert.equal(decoded.forecastHourly.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
+    assert.equal(decoded.forecastHourly.metadata.attributionUrl, "https://www.met.no/");
+    assert.equal(decoded.forecastHourly.metadata.providerLogo, null);
     assert.equal(decoded.forecastHourly.hours.length, 24);
 
     assert.ok(decoded.forecastDaily);
     assert.equal(decoded.forecastDaily.metadata.providerName, "MET Norway");
-    assert.equal(decoded.forecastDaily.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
+    assert.equal(decoded.forecastDaily.metadata.attributionUrl, "https://www.met.no/");
+    assert.equal(decoded.forecastDaily.metadata.providerLogo, null);
     assert.equal(decoded.forecastNextHour.metadata.providerName, "MET Norway");
-    assert.equal(decoded.forecastNextHour.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
+    assert.equal(decoded.forecastNextHour.metadata.attributionUrl, "https://www.met.no/");
+    assert.equal(decoded.forecastNextHour.metadata.providerLogo, null);
     assert.equal(decoded.forecastDaily.days.length > 0, true);
     assert.ok(decoded.forecastNextHour.minutes.length >= 60);
+});
+test("NordicWeather forecast-only requests do not query DMI", async () => {
+    const provider = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
+    provider.met.fetchLocationforecast = async () => locationforecastFixture;
+    provider.met.fetchNowcast = async () => nowcastFixture;
+    provider.dmi.getObservationEnhancement = async () => { throw new Error("Forecast-only request must not query DMI"); };
+    const [hourly, daily, minutely] = await Promise.all([provider.ForecastHourly(2), provider.Daily(2), provider.Minutely()]);
+    for (const forecast of [hourly, daily, minutely]) {
+        assert.equal(forecast.metadata.providerName, "MET Norway");
+        assert.equal(forecast.metadata.attributionUrl, "https://www.met.no/");
+        assert.equal("providerLogo" in forecast.metadata, false);
+    }
 });
 
 test("providerNameToLogo assigns appropriate assets for MET Norway and DMI", () => {

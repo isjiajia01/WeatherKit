@@ -25,9 +25,9 @@ The objective is to enrich Apple Weather data for Nordic regions (Denmark, Norwa
     - `ForecastHourly(steps, begin)` -> returns `{ metadata, hours: [...] }`
     - `Daily(steps, begin)` -> returns `{ metadata, days: [...] }`
     - `Minutely()` -> returns `{ metadata, forecastNextHour: { ... } }`
-- **Merging & Attribution**:
   - `Weather.mergeForecast(to, from)`: Timestamp-aligned array merging preserving Apple-exclusive fields while overriding provider fields.
-  - `providerNameToLogo(name)`: Attaches provider logo icon or fallback.
+  - Nordic/MET Norway provider logos are current-weather-only; forecast roots retain provider names and attribution URLs without `providerLogo`.
+  - Only `currentWeather` requests DMI observations; forecast-only requests avoid the DMI network dependency.
 
 ---
 
@@ -85,8 +85,9 @@ Apple Weather Client
    - Freshness guard: rejects observations older than 30 minutes.
    - Extracts real-time `temp_dry`, `temp_dew`, `humidity`, `pressure_at_sea`, `wind_speed`, `wind_dir`, `wind_max`, `precip_past10min`, `visibility`, `cloud_cover`.
 3. `src/class/NordicWeather.mjs`:
-   - Composite provider unifying MET Norway and DMI.
-   - Coordinates concurrent fetches (MET Locationforecast + MET Nowcast + DMI).
+   - Composite provider unifying MET Norway forecasts/current data with DMI current-observation enhancement.
+   - Queries DMI only for current weather, and applies DMI attribution only when an observation field is actually applied.
+   - Forecast roots preserve MET Norway name and attribution URL but omit provider logos, ensuring a single weather-owned mark.
    - Applies deterministic field precedence:
      - In Denmark: DMI Observation (fresh & near) > MET Locationforecast Instant > Apple Fallback.
      - In other Nordic countries: MET Locationforecast > Apple Fallback.

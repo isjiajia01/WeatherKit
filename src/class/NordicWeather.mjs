@@ -43,10 +43,8 @@ export default class NordicWeather {
         return this.#dmiEnhancementPromise;
     }
 
-    #setForecastLogo(forecast, dmiApplied) {
-        if (forecast?.metadata) {
-            forecast.metadata.providerLogo = providerNameToLogo(dmiApplied ? "MET Norway · DMI" : "MET Norway");
-        }
+    #removeForecastLogo(forecast) {
+        if (forecast?.metadata) delete forecast.metadata.providerLogo;
         return forecast;
     }
 
@@ -107,19 +105,19 @@ export default class NordicWeather {
      */
     async ForecastHourly(hourlysteps = 72, begin = undefined) {
         Console.info("☑️ NordicWeather.ForecastHourly");
-        const [forecast, dmiState] = await Promise.all([this.met.ForecastHourly(hourlysteps, begin), this.#getDmiEnhancement()]);
-        return this.#setForecastLogo(forecast, dmiState.applied);
+        const forecast = await this.met.ForecastHourly(hourlysteps, begin);
+        return this.#removeForecastLogo(forecast);
     }
 
     async Daily(dailysteps = 10, begin = undefined) {
         Console.info("☑️ NordicWeather.Daily");
-        const [forecast, dmiState] = await Promise.all([this.met.Daily(dailysteps, begin), this.#getDmiEnhancement()]);
-        return this.#setForecastLogo(forecast, dmiState.applied);
+        const forecast = await this.met.Daily(dailysteps, begin);
+        return this.#removeForecastLogo(forecast);
     }
 
     async Minutely() {
         Console.info("☑️ NordicWeather.Minutely");
-        const [forecast, dmiState] = await Promise.all([this.met.Minutely(), this.#getDmiEnhancement()]);
-        return this.#setForecastLogo(forecast, dmiState.applied);
+        const forecast = await this.met.Minutely();
+        return this.#removeForecastLogo(forecast);
     }
 }
