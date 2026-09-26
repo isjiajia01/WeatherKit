@@ -242,7 +242,7 @@ export default class METNorway {
                     perceivedPrecipitationIntensity: 0,
                 });
             }
-            if (rawMinutes.length >= 85) break;
+            if (rawMinutes.length >= 60) break;
         }
 
         if (rawMinutes.length === 0) {
@@ -254,7 +254,7 @@ export default class METNorway {
                 ...item,
                 startTime: minuteStemp + idx * 60,
             }))
-            .slice(0, 84);
+            .slice(0, 60);
 
         // Determine description
         const maxRate = Math.max(...minutes.map(m => m.precipitationIntensity));

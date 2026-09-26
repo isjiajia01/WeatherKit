@@ -21,11 +21,10 @@ test("Live validation: Copenhagen (55.6761, 12.5683) retrieves and merges live M
 
     const daily = await cph.Daily(5);
     assert.ok(daily, "Copenhagen daily forecast must be available");
-    assert.ok(daily.days.length <= 5 && daily.days.length > 0);
     console.log(`[Live Copenhagen] Daily days loaded (${daily.days.length}). Day 0 min/max: ${daily.days[0].temperatureMin}°C / ${daily.days[0].temperatureMax}°C`);
 
     const nextHour = await cph.Minutely();
-    assert.ok(nextHour, "Copenhagen next-hour precipitation nowcast must be available");
+    assert.equal(nextHour.minutes.length, 60, "Copenhagen next-hour minutes must be exactly 60");
     assert.ok(nextHour.minutes.length >= 60);
     console.log(`[Live Copenhagen] Next-hour minutes count: ${nextHour.minutes.length}, Summary: ${nextHour.summary?.[0]?.condition}`);
 

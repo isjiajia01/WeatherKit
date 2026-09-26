@@ -23,12 +23,12 @@ AND,((OR,((IP-ASN,714,no-resolve),(IP-ASN,6185,no-resolve))),(PROTOCOL,QUIC)),RE
 
 [URL Rewrite]
 # 🌤 WeatherKit.api.v1.availability.response
-^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/availability\\/ https://weatherkit.wiry-relation-eb3.workers.dev/api/v1/availability/ header
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/availability\\/ https://weather.zhangjiajia.me/api/v1/availability/ header
 # 🌤 WeatherKit.api.v2.weather.response
-^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v2\\/weather\\/ https://weatherkit.wiry-relation-eb3.workers.dev/api/v2/weather/ header
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v2\\/weather\\/ https://weather.zhangjiajia.me/api/v2/weather/ header
 # 🌤 WeatherKit.api.v1.weatherAlerts.response
-^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/weatherAlerts\\?([^#]*&ids=[^&#]*-[0-9]{9}(?:&[^#]*)?)$ https://weatherkit.wiry-relation-eb3.workers.dev/api/v1/weatherAlerts?$1 header
-^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/weatherAlerts\\?([^#]*&ids=-?[0-9]+(?:\\.[0-9]+)?,-?[0-9]+(?:\\.[0-9]+)?(?:&[^#]*)?)$ https://weatherkit.wiry-relation-eb3.workers.dev/api/v1/weatherAlerts?$1 header
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/weatherAlerts\\?([^#]*&ids=[^&#]*-[0-9]{9}(?:&[^#]*)?)$ https://weather.zhangjiajia.me/api/v1/weatherAlerts?$1 header
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/weatherAlerts\\?([^#]*&ids=-?[0-9]+(?:\\.[0-9]+)?,-?[0-9]+(?:\\.[0-9]+)?(?:&[^#]*)?)$ https://weather.zhangjiajia.me/api/v1/weatherAlerts?$1 header
 
 [MITM]
 hostname = %APPEND% weatherkit.apple.com

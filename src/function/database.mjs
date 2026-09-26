@@ -3,7 +3,7 @@ export default {
         Settings: {
             // 只有插件会修改的产品允许被配置关闭；其余 Apple 数据集必须始终透传。
             DataSets: ["airQuality", "currentWeather", "forecastDaily", "forecastHourly", "forecastNextHour", "weatherAlerts"],
-            Weather: { Replace: ["DK", "NO", "SE", "FI", "IS", "CN"], Provider: "Nordic" },
+            Weather: { Replace: ["DK", "NO", "SE", "FI", "IS"], Provider: "Nordic" },
             WeatherAlerts: { Provider: "QWeatherWeb" },
             NextHour: { Provider: "Nordic" },
             AirQuality: {

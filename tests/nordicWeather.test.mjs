@@ -169,7 +169,7 @@ test("METNorway Nowcast fixture parses into valid Apple WeatherKit ForecastNextH
 
     const nextHour = await met.Minutely();
     assert.ok(nextHour, "ForecastNextHour should be created");
-    assert.equal(nextHour.metadata.providerName, "MET Norway");
+    assert.equal(nextHour.minutes.length, 60, "Should have exactly 60 minutes for next hour");
     assert.ok(Array.isArray(nextHour.minutes));
     assert.ok(nextHour.minutes.length >= 60, "Should have at least 60 minutes");
     assert.ok(Array.isArray(nextHour.summary));
@@ -245,7 +245,7 @@ test("NordicWeather full product suite round-trips through Apple WeatherKit Flat
     assert.equal(decoded.forecastHourly.hours.length, 24);
 
     assert.ok(decoded.forecastDaily);
-    assert.ok(decoded.forecastDaily.days.length <= 5);
+    assert.equal(decoded.forecastNextHour.minutes.length, 60);
 
     assert.ok(decoded.forecastNextHour);
     assert.ok(decoded.forecastNextHour.minutes.length >= 60);

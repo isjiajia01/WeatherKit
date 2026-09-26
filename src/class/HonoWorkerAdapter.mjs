@@ -56,6 +56,7 @@ export default class HonoWorkerAdapter {
         switch (true) {
             case url.hostname.startsWith("weatherkit."):
             case url.hostname.startsWith("dev.weatherkit."):
+            case url.hostname === "weather.zhangjiajia.me":
             case restPath.startsWith("api/"): {
                 url.hostname = "weatherkit.apple.com";
                 switch (true) {
