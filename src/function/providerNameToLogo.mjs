@@ -48,8 +48,16 @@ export default function providerNameToLogo(providerName, version = "v2") {
         case "BreezoMeter":
             providerLogo = `https://weatherkit.apple.com/assets/${version}/BreezoMeter.png`;
             break;
-        default:
+        case "MET Norway":
+        case "MET Norway · DMI":
+        case "MET":
+            providerLogo = `https://weatherkit.apple.com/assets/${version}/METNorway.png`;
             break;
+        case "DMI":
+        case "Danish Meteorological Institute":
+            providerLogo = `https://weatherkit.apple.com/assets/${version}/DMI.png`;
+            break;
+        default:
     }
     Console.info("✅ providerNameToLogo");
     return providerLogo;

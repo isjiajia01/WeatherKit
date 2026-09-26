@@ -2,6 +2,8 @@ import { Console, Storage } from "@nsnanocat/util";
 import * as flatbuffers from "flatbuffers";
 import AirQuality from "../class/AirQuality.mjs";
 import ColorfulClouds from "../class/ColorfulClouds.mjs";
+import METNorway from "../class/METNorway.mjs";
+import NordicWeather from "../class/NordicWeather.mjs";
 import QWeather from "../class/QWeather.mjs";
 import WAQI from "../class/WAQI.mjs";
 import Weather from "../class/Weather.mjs";
@@ -97,6 +99,8 @@ export async function Response($request, $response) {
                                     colorfulClouds: new ColorfulClouds(providerParameters, Settings?.API?.ColorfulClouds?.Token || "Y2FpeXVuX25vdGlmeQ=="),
                                     qWeather: new QWeather(providerParameters, Settings?.API?.QWeather?.Token || "bdd98ec1d87747f3a2e8b1741a5af796", Settings?.API?.QWeather?.Host),
                                     waqi: new WAQI(parameters, Settings?.API?.WAQI?.Token),
+                                    metNorway: new METNorway(providerParameters, Settings?.API?.METNorway),
+                                    nordicWeather: new NordicWeather(providerParameters, Settings?.API?.NordicWeather),
                                     country: parameters.country,
                                 };
 
@@ -166,7 +170,9 @@ export async function Response($request, $response) {
  */
 async function InjectCurrentWeather(currentWeather, Settings, enviroments) {
     Console.info("☑️ InjectCurrentWeather");
-    if (!Settings?.Weather?.Replace?.includes(enviroments.country)) {
+    const isNordicProvider = ["Nordic", "METNorway"].includes(Settings?.Weather?.Provider);
+    const isNordicCountry = ["DK", "NO", "SE", "FI", "IS"].includes(enviroments.country);
+    if (!Settings?.Weather?.Replace?.includes(enviroments.country) && !(isNordicProvider && isNordicCountry)) {
         Console.warn("InjectCurrentWeather", `Unreplaced country: ${enviroments.country}`);
         Console.info("✅ InjectCurrentWeather");
         return currentWeather;
@@ -182,6 +188,14 @@ async function InjectCurrentWeather(currentWeather, Settings, enviroments) {
         }
         case "ColorfulClouds": {
             newCurrentWeather = await enviroments.colorfulClouds.CurrentWeather();
+            break;
+        }
+        case "METNorway": {
+            newCurrentWeather = await enviroments.metNorway.CurrentWeather();
+            break;
+        }
+        case "Nordic": {
+            newCurrentWeather = await enviroments.nordicWeather.CurrentWeather();
             break;
         }
     }
@@ -203,7 +217,9 @@ async function InjectCurrentWeather(currentWeather, Settings, enviroments) {
  */
 async function InjectForecastDaily(forecastDaily, Settings, enviroments) {
     Console.info("☑️ InjectForecastDaily");
-    if (!Settings?.Weather?.Replace?.includes(enviroments.country)) {
+    const isNordicProvider = ["Nordic", "METNorway"].includes(Settings?.Weather?.Provider);
+    const isNordicCountry = ["DK", "NO", "SE", "FI", "IS"].includes(enviroments.country);
+    if (!Settings?.Weather?.Replace?.includes(enviroments.country) && !(isNordicProvider && isNordicCountry)) {
         Console.warn("InjectForecastDaily", `Unreplaced country: ${enviroments.country}`);
         Console.info("✅ InjectForecastDaily");
         return forecastDaily;
@@ -221,6 +237,18 @@ async function InjectForecastDaily(forecastDaily, Settings, enviroments) {
             const dailysteps = forecastDaily?.days?.length || 11;
             const begin = forecastDaily?.days?.[0]?.forecastStart;
             newForecastDaily = await enviroments.colorfulClouds.Daily(dailysteps, begin);
+            break;
+        }
+        case "METNorway": {
+            const dailysteps = forecastDaily?.days?.length || 10;
+            const begin = forecastDaily?.days?.[0]?.forecastStart;
+            newForecastDaily = await enviroments.metNorway.Daily(dailysteps, begin);
+            break;
+        }
+        case "Nordic": {
+            const dailysteps = forecastDaily?.days?.length || 10;
+            const begin = forecastDaily?.days?.[0]?.forecastStart;
+            newForecastDaily = await enviroments.nordicWeather.Daily(dailysteps, begin);
             break;
         }
     }
@@ -242,7 +270,9 @@ async function InjectForecastDaily(forecastDaily, Settings, enviroments) {
  */
 async function InjectForecastHourly(forecastHourly, Settings, enviroments) {
     Console.info("☑️ InjectForecastHourly");
-    if (!Settings?.Weather?.Replace?.includes(enviroments.country)) {
+    const isNordicProvider = ["Nordic", "METNorway"].includes(Settings?.Weather?.Provider);
+    const isNordicCountry = ["DK", "NO", "SE", "FI", "IS"].includes(enviroments.country);
+    if (!Settings?.Weather?.Replace?.includes(enviroments.country) && !(isNordicProvider && isNordicCountry)) {
         Console.warn("InjectForecastHourly", `Unreplaced country: ${enviroments.country}`);
         Console.info("✅ InjectForecastHourly");
         return forecastHourly;
@@ -260,6 +290,18 @@ async function InjectForecastHourly(forecastHourly, Settings, enviroments) {
             const hourlysteps = forecastHourly?.hours?.length || 273;
             const begin = forecastHourly?.hours?.[0]?.forecastStart;
             newForecastHourly = await enviroments.colorfulClouds.ForecastHourly(hourlysteps, begin);
+            break;
+        }
+        case "METNorway": {
+            const hourlysteps = forecastHourly?.hours?.length || 72;
+            const begin = forecastHourly?.hours?.[0]?.forecastStart;
+            newForecastHourly = await enviroments.metNorway.ForecastHourly(hourlysteps, begin);
+            break;
+        }
+        case "Nordic": {
+            const hourlysteps = forecastHourly?.hours?.length || 72;
+            const begin = forecastHourly?.hours?.[0]?.forecastStart;
+            newForecastHourly = await enviroments.nordicWeather.ForecastHourly(hourlysteps, begin);
             break;
         }
     }
@@ -288,11 +330,20 @@ async function InjectForecastNextHour(forecastNextHour, Settings, enviroments) {
     }
 
     let newForecastNextHour;
-    switch (Settings?.NextHour?.Provider) {
+    const nextHourProvider = Settings?.NextHour?.Provider ?? (["Nordic", "METNorway"].includes(Settings?.Weather?.Provider) ? Settings.Weather.Provider : "ColorfulClouds");
+    switch (nextHourProvider) {
         case "WeatherKit":
             break;
         case "QWeather": {
             newForecastNextHour = await enviroments.qWeather.Minutely();
+            break;
+        }
+        case "METNorway": {
+            newForecastNextHour = await enviroments.metNorway.Minutely();
+            break;
+        }
+        case "Nordic": {
+            newForecastNextHour = await enviroments.nordicWeather.Minutely();
             break;
         }
         case "ColorfulClouds":

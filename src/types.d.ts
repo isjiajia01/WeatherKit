@@ -54,7 +54,7 @@ export interface Settings {
          *
          * @defaultValue "ColorfulClouds"
          */
-        Provider?: "WeatherKit" | "ColorfulClouds" | "QWeather";
+        Provider?: "WeatherKit" | "ColorfulClouds" | "QWeather" | "METNorway" | "Nordic";
     };
     WeatherAlerts?: {
         Provider?: "WeatherKit" | "QWeatherWeb" | "QWeather" | "ColorfulClouds";
@@ -82,7 +82,7 @@ export interface Settings {
          *
          * @defaultValue "ColorfulClouds"
          */
-        Provider?: "WeatherKit" | "ColorfulClouds" | "QWeather";
+        Provider?: "WeatherKit" | "ColorfulClouds" | "QWeather" | "METNorway" | "Nordic";
     };
     AirQuality?: {
         Current?: {
@@ -326,6 +326,16 @@ export interface Settings {
              * @defaultValue ""
              */
             Token?: string;
+        };
+        METNorway?: {
+            UserAgent?: string;
+            Timeout?: number;
+        };
+        DMI?: {
+            Timeout?: number;
+        };
+        Nordic?: {
+            Timeout?: number;
         };
     };
     /**
