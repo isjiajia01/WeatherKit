@@ -33,6 +33,9 @@
         "packages/*"
     ],
     "scripts": {
+        "test": "node --test tests/*.test.mjs",
+        "test:nordic": "node --test tests/nordicWeather.test.mjs",
+        "test:nordic-live": "node --test tests/nordicLive.test.mjs",
         "dev": "npm-run-all --parallel build:dev build:dev-args",
         "dev:pages": "npx wrangler pages dev --port 8787",
         "dev:workers": "npx wrangler dev -c wrangler.workers.jsonc",
