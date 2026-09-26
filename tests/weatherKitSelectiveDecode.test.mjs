@@ -255,6 +255,52 @@ test("response preserves the original air-quality provider logo in production an
     }
 });
 
+test("response strips forecastNextHour providerLogo for Nordic provider while preserving payload", async () => {
+    const originalArgument = globalThis.$argument;
+    globalThis.$argument = {
+        DataSets: "forecastNextHour",
+        LogLevel: "OFF",
+        Storage: "Argument",
+        Weather: { Provider: "Nordic", Replace: [] },
+        NextHour: { Provider: "Nordic" },
+    };
+    const forecastNextHour = {
+        metadata: {
+            attributionUrl: "https://www.met.no/",
+            expireTime: 1_700_000_000,
+            language: "en-US",
+            latitude: 55.6761,
+            longitude: 12.5683,
+            providerLogo: "https://weatherkit.apple.com/assets/v2/METNorway.png",
+            providerName: "MET Norway",
+            readTime: 1_700_000_000,
+            reportedTime: 1_700_000_000,
+            temporarilyUnavailable: false,
+        },
+        condition: [],
+        forecastEnd: 1_700_003_600,
+        forecastStart: 1_700_000_000,
+        minutes: [{ startTime: 1_700_000_000, precipitationChance: 0, precipitationIntensity: 0, perceivedPrecipitationIntensity: 0 }],
+        summary: [],
+    };
+    try {
+        const sourceBytes = WeatherKit2.encode(undefined, { forecastNextHour });
+        for (const handler of [Response, ResponseDev]) {
+            const response = await runResponseHandler(handler, {
+                url: "https://weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683?country=DK&dataSets=forecastNextHour",
+            }, {
+                bodyBytes: sourceBytes,
+                headers: { "Content-Type": "application/vnd.apple.flatbuffer" },
+            });
+            const decoded = WeatherKit2.decode(new ByteBuffer(new Uint8Array(response.body)), ["forecastNextHour"]);
+            assert.equal(decoded.forecastNextHour.metadata.providerName, "MET Norway");
+            assert.equal(decoded.forecastNextHour.metadata.providerLogo, null);
+            assert.equal(decoded.forecastNextHour.minutes.length, 1);
+        }
+    } finally {
+        globalThis.$argument = originalArgument;
+    }
+});
 test("response only processes roots included in the requested dataSets", async () => {
     const originalArgument = globalThis.$argument;
     const originalHttpClient = globalThis.$httpClient;

@@ -379,14 +379,15 @@ async function InjectForecastHourly(forecastHourly, Settings, enviroments) {
  */
 async function InjectForecastNextHour(forecastNextHour, Settings, enviroments) {
     Console.info("☑️ InjectForecastNextHour");
+    const nextHourProvider = Settings?.NextHour?.Provider ?? (["Nordic", "METNorway"].includes(Settings?.Weather?.Provider) ? Settings.Weather.Provider : "ColorfulClouds");
 
     if (forecastNextHour) {
+        if (["Nordic", "METNorway"].includes(nextHourProvider)) {
+            delete forecastNextHour.metadata?.providerLogo;
+        }
         Console.info("✅ InjectForecastNextHour");
         return forecastNextHour;
     }
-
-    let newForecastNextHour;
-    const nextHourProvider = Settings?.NextHour?.Provider ?? (["Nordic", "METNorway"].includes(Settings?.Weather?.Provider) ? Settings.Weather.Provider : "ColorfulClouds");
     switch (nextHourProvider) {
         case "WeatherKit":
             break;
