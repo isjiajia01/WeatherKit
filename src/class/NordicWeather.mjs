@@ -12,6 +12,8 @@ export default class NordicWeather {
     static Name = "NordicWeather";
     static Version = "1.0.0";
 
+    #dmiEnhancementPromise = null;
+
     constructor(parameters = {}, options = {}) {
         this.latitude = Number(parameters.latitude);
         this.longitude = Number(parameters.longitude);
@@ -23,6 +25,31 @@ export default class NordicWeather {
         this.dmi = new DMI(parameters, options);
     }
 
+    #getDmiEnhancement() {
+        if (!this.#dmiEnhancementPromise) {
+            this.#dmiEnhancementPromise = Promise.resolve().then(async () => {
+                try {
+                    if (!this.dmi.isDenmark()) return { enhancement: null, applied: false };
+                    const enhancement = await this.dmi.getObservationEnhancement(this.options);
+                    const dmiFields = ["temperature", "temperatureDewPoint", "humidity", "pressure", "windSpeed", "windDirection", "windGust", "visibility"];
+                    const applied = enhancement != null && dmiFields.some(field => enhancement[field] != null);
+                    return { enhancement, applied };
+                } catch (error) {
+                    Console.warn("NordicWeather", "DMI observation enhancement failed", error);
+                    return { enhancement: null, applied: false };
+                }
+            });
+        }
+        return this.#dmiEnhancementPromise;
+    }
+
+    #setForecastLogo(forecast, dmiApplied) {
+        if (forecast?.metadata) {
+            forecast.metadata.providerLogo = providerNameToLogo(dmiApplied ? "MET Norway · DMI" : "MET Norway");
+        }
+        return forecast;
+    }
+
     /**
      * Current weather with DMI Denmark observation enhancement
      * @returns {Promise<object|null>}
@@ -30,8 +57,8 @@ export default class NordicWeather {
     async CurrentWeather() {
         Console.info("☑️ NordicWeather.CurrentWeather");
 
-        // Concurrently query MET Norway and DMI
-        const [metResult, dmiResult] = await Promise.allSettled([this.met.CurrentWeather(), this.dmi.isDenmark() ? this.dmi.getObservationEnhancement(this.options) : Promise.resolve(null)]);
+        // Concurrently query MET Norway and the shared lazy DMI enhancement
+        const [metResult, dmiResult] = await Promise.allSettled([this.met.CurrentWeather(), this.#getDmiEnhancement()]);
 
         const currentWeather = metResult.status === "fulfilled" ? metResult.value : null;
         if (!currentWeather) {
@@ -39,7 +66,8 @@ export default class NordicWeather {
             return null; // Triggers fallback to Apple WeatherKit
         }
 
-        const dmiEnhancement = dmiResult.status === "fulfilled" ? dmiResult.value : null;
+        const dmiState = dmiResult.status === "fulfilled" ? dmiResult.value : { enhancement: null, applied: false };
+        const dmiEnhancement = dmiState.enhancement;
 
         // Apply DMI observation enhancement if available.
         if (dmiEnhancement) {
@@ -54,14 +82,12 @@ export default class NordicWeather {
                 ["windGust", "windGust"],
                 ["visibility", "visibility"],
             ];
-            let appliedDmiField = false;
             for (const [sourceKey, targetKey] of dmiFields) {
                 if (dmiEnhancement[sourceKey] != null) {
                     currentWeather[targetKey] = dmiEnhancement[sourceKey];
-                    appliedDmiField = true;
                 }
             }
-            if (appliedDmiField) {
+            if (dmiState.applied) {
                 currentWeather.metadata.providerName = "MET Norway · DMI";
                 currentWeather.metadata.attributionUrl = "https://www.met.no/";
                 currentWeather.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
@@ -81,16 +107,19 @@ export default class NordicWeather {
      */
     async ForecastHourly(hourlysteps = 72, begin = undefined) {
         Console.info("☑️ NordicWeather.ForecastHourly");
-        return await this.met.ForecastHourly(hourlysteps, begin);
+        const [forecast, dmiState] = await Promise.all([this.met.ForecastHourly(hourlysteps, begin), this.#getDmiEnhancement()]);
+        return this.#setForecastLogo(forecast, dmiState.applied);
     }
 
     async Daily(dailysteps = 10, begin = undefined) {
         Console.info("☑️ NordicWeather.Daily");
-        return await this.met.Daily(dailysteps, begin);
+        const [forecast, dmiState] = await Promise.all([this.met.Daily(dailysteps, begin), this.#getDmiEnhancement()]);
+        return this.#setForecastLogo(forecast, dmiState.applied);
     }
 
     async Minutely() {
         Console.info("☑️ NordicWeather.Minutely");
-        return await this.met.Minutely();
+        const [forecast, dmiState] = await Promise.all([this.met.Minutely(), this.#getDmiEnhancement()]);
+        return this.#setForecastLogo(forecast, dmiState.applied);
     }
 }

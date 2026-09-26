@@ -186,45 +186,63 @@ test("METNorway Nowcast fixture parses into valid Apple WeatherKit ForecastNextH
     }
 });
 
-test("NordicWeather applies DMI observation enhancement in Denmark and preserves MET elsewhere", async () => {
-    // Copenhagen: DMI enhancement should be applied
+test("NordicWeather shares DMI enhancement across concurrent products with truthful attribution", async () => {
     const cph = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" }, { maxAgeMs: Number.POSITIVE_INFINITY });
     cph.met.fetchLocationforecast = async () => locationforecastFixture;
+    cph.met.fetchNowcast = async () => nowcastFixture;
     cph.dmi.fetchObservations = async () => dmiFixture;
+    let dmiCalls = 0;
+    const getObservationEnhancement = cph.dmi.getObservationEnhancement.bind(cph.dmi);
+    cph.dmi.getObservationEnhancement = async options => {
+        dmiCalls += 1;
+        return getObservationEnhancement(options);
+    };
 
-    const cphCurrent = await cph.CurrentWeather();
-    assert.equal(cphCurrent.metadata.providerName, "MET Norway · DMI");
+    const [current, hourly, daily, minutely] = await Promise.all([cph.CurrentWeather(), cph.ForecastHourly(2), cph.Daily(2), cph.Minutely()]);
+    const compositeLogo = providerNameToLogo("MET Norway · DMI");
+    assert.equal(dmiCalls, 1, "Concurrent weather products must share one DMI request");
+    assert.equal(current.metadata.providerName, "MET Norway · DMI");
+    assert.equal(current.metadata.providerLogo, compositeLogo);
+    assert.equal(hourly.metadata.providerName, "MET Norway");
+    assert.equal(daily.metadata.providerName, "MET Norway");
+    assert.equal(minutely.metadata.providerName, "MET Norway");
+    assert.equal(hourly.metadata.providerLogo, compositeLogo);
+    assert.equal(daily.metadata.providerLogo, compositeLogo);
+    assert.equal(minutely.metadata.providerLogo, compositeLogo);
 
-    // Oslo: Non-Denmark, DMI skipped, MET Norway preserved
+    // Non-Denmark locations must not query DMI or use the composite logo.
     const oslo = new NordicWeather({ latitude: 59.9139, longitude: 10.7522, country: "NO" });
     oslo.met.fetchLocationforecast = async () => locationforecastFixture;
-
+    oslo.dmi.getObservationEnhancement = async () => {
+        throw new Error("DMI must not be queried outside Denmark");
+    };
     const osloCurrent = await oslo.CurrentWeather();
     assert.equal(osloCurrent.metadata.providerName, "MET Norway");
+    assert.equal(osloCurrent.metadata.providerLogo, providerNameToLogo("MET Norway"));
 
-    // DMI failure tolerance: If DMI throws, MET Norway still succeeds.
+    // DMI failure tolerance: MET Norway still succeeds with MET attribution.
     const resilient = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
     resilient.met.fetchLocationforecast = async () => locationforecastFixture;
     resilient.dmi.getObservationEnhancement = async () => {
         throw new Error("Simulated DMI upstream outage");
     };
-
     const resilientCurrent = await resilient.CurrentWeather();
-    assert.ok(resilientCurrent, "Current weather must still succeed when DMI fails");
+    assert.ok(resilientCurrent);
     assert.equal(resilientCurrent.metadata.providerName, "MET Norway");
+    assert.equal(resilientCurrent.metadata.providerLogo, providerNameToLogo("MET Norway"));
 
-    // A station result without usable atmospheric fields must not claim DMI attribution.
+    // A no-op observation must preserve MET attribution on every product.
     const noOp = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
     noOp.met.fetchLocationforecast = async () => locationforecastFixture;
+    noOp.met.fetchNowcast = async () => nowcastFixture;
     noOp.dmi.getObservationEnhancement = async () => ({ stationId: "no-op", observedAt: 1, providerName: "Danish Meteorological Institute" });
-    assert.equal((await noOp.CurrentWeather()).metadata.providerName, "MET Norway");
-
-    const forecast = await cph.ForecastHourly(2);
-    const daily = await cph.Daily(2);
-    const minutely = await cph.Minutely();
-    assert.equal(forecast.metadata.providerName, "MET Norway");
-    assert.equal(daily.metadata.providerName, "MET Norway");
-    assert.equal(minutely.metadata.providerName, "MET Norway");
+    const [noOpCurrent, noOpHourly, noOpDaily, noOpMinutely] = await Promise.all([noOp.CurrentWeather(), noOp.ForecastHourly(2), noOp.Daily(2), noOp.Minutely()]);
+    const metLogo = providerNameToLogo("MET Norway");
+    assert.equal(noOpCurrent.metadata.providerName, "MET Norway");
+    assert.equal(noOpCurrent.metadata.providerLogo, metLogo);
+    assert.equal(noOpHourly.metadata.providerLogo, metLogo);
+    assert.equal(noOpDaily.metadata.providerLogo, metLogo);
+    assert.equal(noOpMinutely.metadata.providerLogo, metLogo);
 });
 
 test("NordicWeather full product suite round-trips through Apple WeatherKit FlatBuffers codec", async () => {
@@ -256,14 +274,14 @@ test("NordicWeather full product suite round-trips through Apple WeatherKit Flat
 
     assert.ok(decoded.forecastHourly);
     assert.equal(decoded.forecastHourly.metadata.providerName, "MET Norway");
-    assert.equal(decoded.forecastHourly.metadata.providerLogo, providerNameToLogo("MET Norway"));
+    assert.equal(decoded.forecastHourly.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
     assert.equal(decoded.forecastHourly.hours.length, 24);
 
     assert.ok(decoded.forecastDaily);
     assert.equal(decoded.forecastDaily.metadata.providerName, "MET Norway");
-    assert.equal(decoded.forecastDaily.metadata.providerLogo, providerNameToLogo("MET Norway"));
+    assert.equal(decoded.forecastDaily.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
     assert.equal(decoded.forecastNextHour.metadata.providerName, "MET Norway");
-    assert.equal(decoded.forecastNextHour.metadata.providerLogo, providerNameToLogo("MET Norway"));
+    assert.equal(decoded.forecastNextHour.metadata.providerLogo, providerNameToLogo("MET Norway · DMI"));
     assert.equal(decoded.forecastDaily.days.length > 0, true);
     assert.ok(decoded.forecastNextHour.minutes.length >= 60);
 });
