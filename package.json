@@ -33,7 +33,7 @@
         "packages/*"
     ],
     "scripts": {
-        "test": "node --test tests/*.test.mjs",
+        "test": "node --test --test-concurrency=1 tests/*.test.mjs",
         "test:nordic": "node --test tests/nordicWeather.test.mjs",
         "test:nordic-live": "node --test tests/nordicLive.test.mjs",
         "dev": "npm-run-all --parallel build:dev build:dev-args",

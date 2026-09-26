@@ -123,7 +123,7 @@ export default class DMI {
      * Extract normalized observation enhancement data from nearest station
      * @returns {Promise<object|null>}
      */
-    async getObservationEnhancement() {
+    async getObservationEnhancement(options = {}) {
         Console.info("☑️ DMI.getObservationEnhancement");
         const data = await this.fetchObservations();
         const features = data?.features;
@@ -132,7 +132,8 @@ export default class DMI {
             return null;
         }
 
-        const now = Date.now();
+        const now = options.now ?? Date.now();
+        const maxAge = options.maxAgeMs ?? DMI.MaxObservationAgeMs;
 
         // Group observations by stationId
         const stations = new Map();
@@ -142,7 +143,7 @@ export default class DMI {
             if (!coords || !props?.stationId || !props?.parameterId) continue;
 
             const observedTime = props.observed ? Date.parse(props.observed) : 0;
-            if (now - observedTime > DMI.MaxObservationAgeMs) {
+            if (maxAge !== Infinity && now - observedTime > maxAge) {
                 continue; // Stale observation
             }
 

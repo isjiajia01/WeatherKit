@@ -3,9 +3,9 @@ export default {
         Settings: {
             // 只有插件会修改的产品允许被配置关闭；其余 Apple 数据集必须始终透传。
             DataSets: ["airQuality", "currentWeather", "forecastDaily", "forecastHourly", "forecastNextHour", "weatherAlerts"],
-            Weather: { Replace: ["CN"], Provider: "ColorfulClouds" },
+            Weather: { Replace: ["DK", "NO", "SE", "FI", "IS", "CN"], Provider: "Nordic" },
             WeatherAlerts: { Provider: "QWeatherWeb" },
-            NextHour: { Provider: "ColorfulClouds" },
+            NextHour: { Provider: "Nordic" },
             AirQuality: {
                 Current: { Pollutants: { Provider: "ColorfulClouds", Units: { Replace: [], Mode: "Scale" } }, Index: { Replace: ["HJ6332012"], Provider: "Calculate", ForceCNPrimaryPollutants: true } },
                 Comparison: { ReplaceWhenCurrentChange: false, Yesterday: { PollutantsProvider: "QWeather", IndexProvider: "ColorfulCloudsUS" } },

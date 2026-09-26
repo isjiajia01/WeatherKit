@@ -31,7 +31,7 @@ export default class NordicWeather {
         Console.info("☑️ NordicWeather.CurrentWeather");
 
         // Concurrently query MET Norway and DMI
-        const [metResult, dmiResult] = await Promise.allSettled([this.met.CurrentWeather(), this.dmi.isDenmark() ? this.dmi.getObservationEnhancement() : Promise.resolve(null)]);
+        const [metResult, dmiResult] = await Promise.allSettled([this.met.CurrentWeather(), this.dmi.isDenmark() ? this.dmi.getObservationEnhancement(this.options) : Promise.resolve(null)]);
 
         const currentWeather = metResult.status === "fulfilled" ? metResult.value : null;
         if (!currentWeather) {

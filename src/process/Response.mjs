@@ -137,6 +137,17 @@ export async function Response($request, $response) {
                                     }),
                                 );
                                 rawBody = WeatherKit2.encode(ByteBuffer, body);
+                                const isNordicCountry = ["DK", "NO", "SE", "FI", "IS"].includes(enviroments.country);
+                                const isNordicProvider = ["Nordic", "METNorway"].includes(Settings?.Weather?.Provider);
+                                if (isNordicCountry && isNordicProvider) {
+                                    $response.headers = $response.headers || {};
+                                    $response.headers["x-nordic-provider"] = Settings?.Weather?.Provider;
+                                    $response.headers["x-nordic-country"] = enviroments.country;
+                                    $response.headers["x-nordic-met"] = body.currentWeather ? "hit" : "fallback";
+                                    $response.headers["x-nordic-dmi"] = body.currentWeather?.metadata?.providerName?.includes("DMI") ? "applied" : (enviroments.country === "DK" ? "station-search" : "non-denmark");
+                                    $response.headers["x-nordic-nowcast"] = body.forecastNextHour ? `hit (${body.forecastNextHour.minutes?.length || 0}m)` : "skipped";
+                                    Console.info("NordicResponse", `Diagnostic: Country=${enviroments.country}, MET=${$response.headers["x-nordic-met"]}, DMI=${$response.headers["x-nordic-dmi"]}, Nowcast=${$response.headers["x-nordic-nowcast"]}`);
+                                }
                                 break;
                             }
                             break;

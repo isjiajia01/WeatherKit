@@ -6,6 +6,7 @@ const endpoint = {
 	defaultValue: "weatherkit.pages.dev",
 	type: "string" as const,
 	options: [
+		{ key: "weatherkit.wiry-relation-eb3.workers.dev", label: "Nordic 专属版；直连；专属 Cloudflare 部署" },
 		{ key: "weatherkit.pages.dev", label: "首选；直连；无需代理" },
 		{ key: "dev.weatherkit.pages.dev", label: "开发版" },
 		{ key: "weather.nanocat.cloud", label: "Worker 版；需要代理" },

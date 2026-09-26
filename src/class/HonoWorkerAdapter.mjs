@@ -55,7 +55,8 @@ export default class HonoWorkerAdapter {
     static routeRewrite(url, restPath = "") {
         switch (true) {
             case url.hostname.startsWith("weatherkit."):
-            case url.hostname.startsWith("dev.weatherkit."): {
+            case url.hostname.startsWith("dev.weatherkit."):
+            case restPath.startsWith("api/"): {
                 url.hostname = "weatherkit.apple.com";
                 switch (true) {
                     case url.pathname.startsWith("/weatherkit.apple.com/"):
@@ -70,9 +71,9 @@ export default class HonoWorkerAdapter {
                 const [host, ...path] = `${restPath}`.split("/");
                 if (!host) break;
                 url.protocol = "https:";
-                url.hostname = host;
+                url.hostname = host.includes(".") ? host : "weatherkit.apple.com";
                 url.port = "443";
-                url.pathname = `/${path.join("/")}`;
+                url.pathname = host.includes(".") ? `/${path.join("/")}` : `/${restPath}`;
                 break;
             }
         }

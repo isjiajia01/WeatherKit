@@ -105,7 +105,7 @@ test("DMI extracts nearest atmospheric station observation and normalizes units"
     // Mock fetchObservations with fixture
     dmi.fetchObservations = async () => dmiFixture;
 
-    const enhancement = await dmi.getObservationEnhancement();
+    const enhancement = await dmi.getObservationEnhancement({ maxAgeMs: Infinity });
     assert.ok(enhancement, "Enhancement should be extracted");
     assert.equal(enhancement.providerName, "Danish Meteorological Institute");
     assert.ok(enhancement.distanceKm <= 35, "Station should be within 35 km");
@@ -188,7 +188,7 @@ test("METNorway Nowcast fixture parses into valid Apple WeatherKit ForecastNextH
 
 test("NordicWeather applies DMI observation enhancement in Denmark and preserves MET elsewhere", async () => {
     // Copenhagen: DMI enhancement should be applied
-    const cph = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
+    const cph = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" }, { maxAgeMs: Infinity });
     cph.met.fetchLocationforecast = async () => locationforecastFixture;
     cph.dmi.fetchObservations = async () => dmiFixture;
 
@@ -215,7 +215,7 @@ test("NordicWeather applies DMI observation enhancement in Denmark and preserves
 });
 
 test("NordicWeather full product suite round-trips through Apple WeatherKit FlatBuffers codec", async () => {
-    const provider = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" });
+    const provider = new NordicWeather({ latitude: 55.6761, longitude: 12.5683, country: "DK" }, { maxAgeMs: Infinity });
     provider.met.fetchLocationforecast = async () => locationforecastFixture;
     provider.met.fetchNowcast = async () => nowcastFixture;
     provider.dmi.fetchObservations = async () => dmiFixture;
