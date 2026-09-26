@@ -252,10 +252,10 @@ test("NordicWeather full product suite round-trips through Apple WeatherKit Flat
 });
 
 test("providerNameToLogo assigns appropriate assets for MET Norway and DMI", () => {
-    assert.equal(providerNameToLogo("MET Norway"), "https://weatherkit.apple.com/assets/v2/METNorway.png");
-    assert.equal(providerNameToLogo("MET Norway · DMI"), "https://weatherkit.apple.com/assets/v2/METNorway.png");
-    assert.equal(providerNameToLogo("DMI"), "https://weatherkit.apple.com/assets/v2/DMI.png");
-    assert.equal(providerNameToLogo("Danish Meteorological Institute"), "https://weatherkit.apple.com/assets/v2/DMI.png");
+    assert.equal(providerNameToLogo("MET Norway"), "https://weatherkit.s232278.workers.dev/images/icon/v2/METNorway.png");
+    assert.equal(providerNameToLogo("MET Norway · DMI"), "https://weatherkit.s232278.workers.dev/images/icon/v2/METNorway_DMI.png");
+    assert.equal(providerNameToLogo("DMI"), "https://weatherkit.s232278.workers.dev/images/icon/v2/DMI.png");
+    assert.equal(providerNameToLogo("Danish Meteorological Institute"), "https://weatherkit.s232278.workers.dev/images/icon/v2/DMI.png");
     // Ensure Apple and WeatherKit remain unbranded
     assert.equal(providerNameToLogo("Apple"), undefined);
     assert.equal(providerNameToLogo("WeatherKit"), undefined);

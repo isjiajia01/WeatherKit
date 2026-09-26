@@ -73,7 +73,7 @@ export default class NordicWeather {
             // Update metadata to reflect both MET Norway and DMI
             currentWeather.metadata.providerName = "MET Norway · DMI";
             currentWeather.metadata.attributionUrl = "https://www.met.no/";
-            currentWeather.metadata.providerLogo = providerNameToLogo("MET Norway");
+            currentWeather.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
             currentWeather.asOf = dmiEnhancement.observedAt || currentWeather.asOf;
         }
 

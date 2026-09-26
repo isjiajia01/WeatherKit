@@ -4,6 +4,7 @@ import * as flatbuffers from "flatbuffers";
 import HonoWorkerAdapter from "./class/HonoWorkerAdapter.mjs";
 import NordicWeather from "./class/NordicWeather.mjs";
 import WeatherKit2 from "./class/WeatherKit2.mjs";
+import { getNordicIcon } from "./function/nordicIcons.mjs";
 import { Request } from "./process/Request.mjs";
 import { Response } from "./process/Response.mjs";
 
@@ -41,6 +42,14 @@ export default new Hono()
     .get("/module/shadowrocket", c => {
         c.header("Content-Type", "text/plain; charset=utf-8");
         return c.text(SHADOWROCKET_MODULE);
+    })
+    .get("/images/icon/:version/:filename", c => {
+        const filename = c.req.param("filename");
+        const bytes = getNordicIcon(filename);
+        if (!bytes) return c.text("Not found", 404);
+        c.header("Content-Type", "image/png");
+        c.header("Cache-Control", "public, max-age=604800, immutable");
+        return c.body(bytes);
     })
     .get("/test/nordic", async c => {
         const lat = Number(c.req.query("lat") || "55.6761");
