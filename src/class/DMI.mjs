@@ -143,7 +143,7 @@ export default class DMI {
             if (!coords || !props?.stationId || !props?.parameterId) continue;
 
             const observedTime = props.observed ? Date.parse(props.observed) : 0;
-            if (maxAge !== Infinity && now - observedTime > maxAge) {
+            if (maxAge !== Number.POSITIVE_INFINITY && now - observedTime > maxAge) {
                 continue; // Stale observation
             }
 
