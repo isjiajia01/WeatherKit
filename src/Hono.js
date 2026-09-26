@@ -7,8 +7,39 @@ import WeatherKit2 from "./class/WeatherKit2.mjs";
 import { Request } from "./process/Request.mjs";
 import { Response } from "./process/Response.mjs";
 
+const SHADOWROCKET_MODULE = `#!name =  iRingo: 🌤 WeatherKit (Nordic Rewrite)
+#!desc = iOS 18 & macOS 15 & watchOS 11\\n专为北欧定制的 Apple WeatherKit 重写模块，直连专属 Cloudflare Nordic 服务端点，集成 MET Norway 及丹麦 DMI 地面实测数据。
+#!openUrl = http://boxjs.com/#/app/iRingo.WeatherKit
+#!author = VirgilClyne, WordlessEcho, 001, hhh2210 & Jiajia
+#!homepage = https://github.com/isjiajia01/WeatherKit
+#!icon = https://developer.apple.com/assets/elements/icons/weatherkit/weatherkit-128x128.png
+#!category =  iRingo
+
+[Rule]
+DOMAIN,weather-analytics-events.apple.com,REJECT-DROP
+DOMAIN-SUFFIX,tthr.apple.com,REJECT-DROP
+DOMAIN,tether.edge.apple,REJECT-DROP
+AND,((OR,((IP-ASN,714,no-resolve),(IP-ASN,6185,no-resolve))),(PROTOCOL,QUIC)),REJECT-DROP
+
+[URL Rewrite]
+# 🌤 WeatherKit.api.v1.availability.response
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/availability\\/ https://weatherkit.wiry-relation-eb3.workers.dev/api/v1/availability/ header
+# 🌤 WeatherKit.api.v2.weather.response
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v2\\/weather\\/ https://weatherkit.wiry-relation-eb3.workers.dev/api/v2/weather/ header
+# 🌤 WeatherKit.api.v1.weatherAlerts.response
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/weatherAlerts\\?([^#]*&ids=[^&#]*-[0-9]{9}(?:&[^#]*)?)$ https://weatherkit.wiry-relation-eb3.workers.dev/api/v1/weatherAlerts?$1 header
+^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/weatherAlerts\\?([^#]*&ids=-?[0-9]+(?:\\.[0-9]+)?,-?[0-9]+(?:\\.[0-9]+)?(?:&[^#]*)?)$ https://weatherkit.wiry-relation-eb3.workers.dev/api/v1/weatherAlerts?$1 header
+
+[MITM]
+hostname = %APPEND% weatherkit.apple.com
+`;
+
 export default new Hono()
     .get("/", c => c.text("OK"))
+    .get("/module/shadowrocket", c => {
+        c.header("Content-Type", "text/plain; charset=utf-8");
+        return c.text(SHADOWROCKET_MODULE);
+    })
     .get("/test/nordic", async c => {
         const lat = Number(c.req.query("lat") || "55.6761");
         const lon = Number(c.req.query("lon") || "12.5683");
