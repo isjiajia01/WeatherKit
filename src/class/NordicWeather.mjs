@@ -89,26 +89,31 @@ export default class NordicWeather {
      */
     async ForecastHourly(hourlysteps = 72, begin = undefined) {
         Console.info("☑️ NordicWeather.ForecastHourly");
-        return this.met.ForecastHourly(hourlysteps, begin);
+        const hourly = await this.met.ForecastHourly(hourlysteps, begin);
+        if (hourly?.metadata && this.dmi.isDenmark()) {
+            hourly.metadata.providerName = "MET Norway · DMI";
+            hourly.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
+        }
+        return hourly;
     }
 
-    /**
-     * Daily forecast using MET Norway Locationforecast
-     * @param {number} [dailysteps=10]
-     * @param {number} [begin]
-     * @returns {Promise<object|null>}
-     */
     async Daily(dailysteps = 10, begin = undefined) {
         Console.info("☑️ NordicWeather.Daily");
-        return this.met.Daily(dailysteps, begin);
+        const daily = await this.met.Daily(dailysteps, begin);
+        if (daily?.metadata && this.dmi.isDenmark()) {
+            daily.metadata.providerName = "MET Norway · DMI";
+            daily.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
+        }
+        return daily;
     }
 
-    /**
-     * Next-hour precipitation nowcast using MET Norway Nowcast
-     * @returns {Promise<object|null>}
-     */
     async Minutely() {
         Console.info("☑️ NordicWeather.Minutely");
-        return this.met.Minutely();
+        const nextHour = await this.met.Minutely();
+        if (nextHour?.metadata && this.dmi.isDenmark()) {
+            nextHour.metadata.providerName = "MET Norway · DMI";
+            nextHour.metadata.providerLogo = providerNameToLogo("MET Norway · DMI");
+        }
+        return nextHour;
     }
 }

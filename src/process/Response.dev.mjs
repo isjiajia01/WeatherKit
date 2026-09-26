@@ -186,6 +186,7 @@ export async function Response($request, $response) {
                                         }
                                     }),
                                 );
+
                                 rawBody = WeatherKit2.encode(ByteBuffer, body);
                                 break;
                             }
@@ -497,8 +498,13 @@ async function InjectAirQuality(airQuality, Settings, Caches, enviroments) {
         ...(needInjectComparison && comparisonMetadata?.providerName && !comparisonMetadata.temporarilyUnavailable ? [`对比昨日：\n${comparisonMetadata.providerName}`] : []),
     ];
 
+    const isNordicProvider = ["Nordic", "METNorway"].includes(Settings?.Weather?.Provider);
+    const isNordicCountry = ["DK", "NO", "SE", "FI", "IS"].includes(enviroments.country);
+    const providerName = isNordicCountry && isNordicProvider
+        ? (enviroments.country === "DK" ? "MET Norway · DMI" : "MET Norway")
+        : (weatherKitMetadata?.providerName || pollutantMetadata?.providerName || indexMetadata?.providerName || comparisonMetadata?.providerName);
     // Step6. 选取首个有效 provider，生成统一 logo
-    const providerLogo = providerNameToLogo(weatherKitMetadata?.providerName || pollutantMetadata?.providerName || indexMetadata?.providerName || comparisonMetadata?.providerName);
+    const providerLogo = providerNameToLogo(providerName);
 
     // Step7. 合并输出：优先使用可用注入结果，并统一 metadata / pollutants / previousDayComparison
     airQuality = {
