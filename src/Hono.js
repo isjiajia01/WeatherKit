@@ -19,8 +19,8 @@ const SHADOWROCKET_MODULE = `#!name =  iRingo: 🌤 WeatherKit (Nordic Rew
 DOMAIN,weather-analytics-events.apple.com,REJECT-DROP
 DOMAIN-SUFFIX,tthr.apple.com,REJECT-DROP
 DOMAIN,tether.edge.apple,REJECT-DROP
+AND,((IP-CIDR,17.0.0.0/8,no-resolve),(PROTOCOL,UDP)),REJECT-DROP
 AND,((OR,((IP-ASN,714,no-resolve),(IP-ASN,6185,no-resolve))),(PROTOCOL,QUIC)),REJECT-DROP
-
 [URL Rewrite]
 # 🌤 WeatherKit.api.v1.availability.response
 ^https?:\\/\\/weatherkit\\.apple\\.com\\/api\\/v1\\/availability\\/ https://weatherkit.midnight-utahceratops.workers.dev/api/v1/availability/ header
@@ -33,9 +33,11 @@ AND,((OR,((IP-ASN,714,no-resolve),(IP-ASN,6185,no-resolve))),(PROTOCOL,QUIC)),RE
 [MITM]
 hostname = %APPEND% weatherkit.apple.com
 `;
+const requestLogs = [];
 
 export default new Hono()
     .get("/", c => c.text("OK"))
+    .get("/stats", c => c.json({ count: requestLogs.length, recent: requestLogs }))
     .get("/module/shadowrocket", c => {
         c.header("Content-Type", "text/plain; charset=utf-8");
         return c.text(SHADOWROCKET_MODULE);
@@ -95,6 +97,15 @@ export default new Hono()
         });
     })
     .all("/:rest{.*}", async c => {
+        requestLogs.unshift({
+            time: new Date().toISOString(),
+            method: c.req.method,
+            url: c.req.url,
+            path: c.req.path,
+            userAgent: c.req.header("user-agent") || "",
+            country: c.req.header("cf-ipcountry") || "",
+        });
+        if (requestLogs.length > 50) requestLogs.pop();
         let $request = await HonoWorkerAdapter.buildRequest(c.req);
         $request = HonoWorkerAdapter.buildArgument($request);
         let $response;
