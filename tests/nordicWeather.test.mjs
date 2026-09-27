@@ -291,10 +291,10 @@ test("NordicWeather forecast-only requests do not query DMI", async () => {
 });
 
 test("providerNameToLogo assigns appropriate assets for MET Norway and DMI", () => {
-    assert.equal(providerNameToLogo("MET Norway"), "https://weatherkit.s232278.workers.dev/images/icon/v2/METNorway.png");
-    assert.equal(providerNameToLogo("MET Norway · DMI"), "https://weatherkit.s232278.workers.dev/images/icon/v2/METNorway_DMI.png");
-    assert.equal(providerNameToLogo("DMI"), "https://weatherkit.s232278.workers.dev/images/icon/v2/DMI.png");
-    assert.equal(providerNameToLogo("Danish Meteorological Institute"), "https://weatherkit.s232278.workers.dev/images/icon/v2/DMI.png");
+    assert.equal(providerNameToLogo("MET Norway"), "https://raw.githubusercontent.com/isjiajia01/WeatherKit/feat/nordic-weather-provider/images/icon/v2/METNorway.png");
+    assert.equal(providerNameToLogo("MET Norway · DMI"), "https://raw.githubusercontent.com/isjiajia01/WeatherKit/feat/nordic-weather-provider/images/icon/v2/METNorway_DMI.png");
+    assert.equal(providerNameToLogo("DMI"), "https://raw.githubusercontent.com/isjiajia01/WeatherKit/feat/nordic-weather-provider/images/icon/v2/DMI.png");
+    assert.equal(providerNameToLogo("Danish Meteorological Institute"), "https://raw.githubusercontent.com/isjiajia01/WeatherKit/feat/nordic-weather-provider/images/icon/v2/DMI.png");
     // Ensure Apple and WeatherKit remain unbranded
     assert.equal(providerNameToLogo("Apple"), undefined);
     assert.equal(providerNameToLogo("WeatherKit"), undefined);

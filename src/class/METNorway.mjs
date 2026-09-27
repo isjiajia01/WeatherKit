@@ -6,7 +6,7 @@ import METWeatherCode from "./METWeatherCode.mjs";
 export default class METNorway {
     static Name = "METNorway";
     static Version = "1.0.0";
-    static DefaultUserAgent = "WeatherKit/3.3.2 (https://github.com/NSRingo/WeatherKit; isjiajia01@gmail.com)";
+    static DefaultUserAgent = "WeatherKit/3.3.2 (https://github.com/isjiajia01/WeatherKit/issues)";
 
     // In-memory cache for Locationforecast and Nowcast responses
     static #Cache = {

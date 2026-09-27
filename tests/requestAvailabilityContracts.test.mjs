@@ -233,9 +233,9 @@ test("request dataSet names map to FlatBuffer root slots", () => {
     });
 });
 
-test("provider API defaults live in the database", () => {
-    assert.equal(database.WeatherKit.Settings.API.ColorfulClouds.Token, "Y2FpeXVuX25vdGlmeQ==");
-    assert.equal(database.WeatherKit.Settings.API.QWeather.Token, "bdd98ec1d87747f3a2e8b1741a5af796");
+test("provider API defaults do not contain credential values", () => {
+    assert.equal(database.WeatherKit.Settings.API.ColorfulClouds.Token, null);
+    assert.equal(database.WeatherKit.Settings.API.QWeather.Token, null);
 });
 
 test("availability keeps Apple's capabilities and appends plugin requirements in prod and dev", async () => {

@@ -76,7 +76,7 @@ Apple Weather Client
 ### New Modules
 1. `src/class/METNorway.mjs`:
    - Handles network requests to `https://api.met.no/weatherapi/locationforecast/2.0/complete` and `/nowcast/2.0/complete`.
-   - Sends strictly compliant `User-Agent` (`iRingoWeatherKit/3.3.2 (https://github.com/NSRingo/WeatherKit; isjiajia01@gmail.com)`).
+   - Sends an application/version User-Agent with the public repository's issue tracker as a contact route; MET Norway recommends reachable contact information in its Terms of Service.
    - In-memory cache with HTTP `Expires` / `Last-Modified` / `If-Modified-Since` awareness.
    - Converts MET GeoJSON timeseries into normalized Apple WeatherKit domain representations.
 2. `src/class/DMI.mjs`:

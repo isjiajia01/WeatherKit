@@ -7,7 +7,7 @@
 #!category = {{@package 'organizationName'}}
 #!date = {{now "yyyy-MM-dd HH:mm:ss"}}
 #!arguments = endpoint:weatherkit.pages.dev
-#!arguments-desc = endpoint: [重写] 服务端点\n    ├ weatherkit.pages.dev: 官方版；直连；无需代理\n    ├ weather.zhangjiajia.me: 专属域名 (MET Norway + DMI)\n    ├ dev.weatherkit.pages.dev: 开发版\n    └ weather.nanocat.cloud: Worker 版；需要代理
+#!arguments-desc = endpoint: [Rewrite] service endpoint\n    ├ weatherkit.pages.dev: upstream service\n    ├ configure your deployment endpoint: use your own Worker hostname\n    ├ dev.weatherkit.pages.dev: development service\n    └ weather.nanocat.cloud: Worker service
 
 [Rule]
 DOMAIN,weather-analytics-events.apple.com,REJECT-DROP

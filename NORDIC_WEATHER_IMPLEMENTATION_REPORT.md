@@ -101,7 +101,7 @@ The fallback engine operates on zero-cascade degradation:
 - **Locationforecast**: In-memory cache keyed by 3-decimal-place coordinates (~110m resolution). Respects upstream HTTP `Expires` header (typically 20–40 min TTL). Re-validates with `If-Modified-Since` (handling 304 Not Modified).
 - **Nowcast**: In-memory cache with short TTL (3–5 min aligned with `Expires`).
 - **DMI Observations**: In-memory cache with 5 min TTL.
-- **Fair Use**: Identifiable `User-Agent` (`WeatherKit/3.3.2 (https://github.com/NSRingo/WeatherKit; isjiajia01@gmail.com)`) ensures compliance with MET Norway Terms of Service.
+- **Fair Use**: MET Norway requests identify this public fork using its repository contact URL in the User-Agent, following MET Norway's API identification terms.
 
 ---
 

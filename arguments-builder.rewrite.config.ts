@@ -6,7 +6,7 @@ const endpoint = {
 	defaultValue: "weatherkit.pages.dev",
 	type: "string" as const,
 	options: [
-		{ key: "weather.zhangjiajia.me", label: "个人专属域名 (直连 / 推荐)" },
+		{ key: "weather.example.workers.dev", label: "自定义 Worker 端点" },
 		{ key: "weatherkit.pages.dev", label: "首选；直连；无需代理" },
 		{ key: "dev.weatherkit.pages.dev", label: "开发版" },
 		{ key: "weather.nanocat.cloud", label: "Worker 版；需要代理" },

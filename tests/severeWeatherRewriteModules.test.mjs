@@ -150,7 +150,7 @@ test("Rewrite templates stay aligned with fixed Rewrite modules", async () => {
 
 	const shadowrocket = await readFile(new URL("../template/shadowrocket.rewrite.handlebars", import.meta.url), "utf8");
 	assert.ok(shadowrocket.includes("#!arguments = endpoint:weatherkit.pages.dev"));
-	assert.ok(shadowrocket.includes("#!arguments-desc = endpoint: [重写] 服务端点\\n"));
+        assert.ok(shadowrocket.includes("#!arguments-desc = endpoint: [Rewrite] service endpoint\\n"));
 	assert.ok(shadowrocket.includes("https://\\{{{endpoint}}}/api/v1/weatherAlerts?$1"));
 
 	for (const filename of fixedTemplates) {

@@ -90,7 +90,7 @@ export default class DMI {
                 method: "GET",
                 headers: {
                     Accept: "application/geo+json, application/json",
-                    "User-Agent": "WeatherKit/3.3.2 (https://github.com/NSRingo/WeatherKit; isjiajia01@gmail.com)",
+                    "User-Agent": "WeatherKit/3.3.2 (https://github.com/isjiajia01/WeatherKit/issues)",
                 },
                 timeout: this.timeout,
             });

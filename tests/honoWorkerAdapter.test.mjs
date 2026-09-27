@@ -9,7 +9,7 @@ test("WeatherKit endpoints route requests to Apple", () => {
         ["https://custom-nordic-worker.workers.dev/api/v2/weather/en-US/55.6761/12.5683", "api/v2/weather/en-US/55.6761/12.5683", "https://weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683"],
         ["https://custom-nordic-pages.pages.dev/api/v2/weather/en-US/55.6761/12.5683", "api/v2/weather/en-US/55.6761/12.5683", "https://weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683"],
         ["https://weather.nanocat.cloud/weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683", "weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683", "https://weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683"],
-        ["https://weather.zhangjiajia.me/api/v2/weather/en-US/55.6761/12.5683", "api/v2/weather/en-US/55.6761/12.5683", "https://weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683"],
+        ["https://weather.example.com/api/v2/weather/en-US/55.6761/12.5683", "api/v2/weather/en-US/55.6761/12.5683", "https://weatherkit.apple.com/api/v2/weather/en-US/55.6761/12.5683"],
     ];
     for (const [input, restPath, expected] of cases) {
         const url = HonoWorkerAdapter.routeRewrite(new URL(input), restPath);
